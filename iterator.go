@@ -24,12 +24,36 @@ func ToSlice[T any](it Iterator[T]) []T {
 	return s
 }
 
+func TrySlice[T any](it Iterator[Result[T]]) Result[[]T] {
+	var s []T
+	for it.Next() {
+		v := it.Value()
+		if v.Err() != nil {
+			return Err[[]T](v.Err())
+		}
+		s = append(s, v.Value())
+	}
+	return OK(s)
+}
+
 func ToSet[T comparable](it Iterator[T]) Set[T] {
 	s := Set[T]{}
 	for it.Next() {
 		s.Add(it.Value())
 	}
 	return s
+}
+
+func TrySet[T comparable](it Iterator[Result[T]]) Result[Set[T]] {
+	s := Set[T]{}
+	for it.Next() {
+		v := it.Value()
+		if v.Err() != nil {
+			return Err[Set[T]](v.Err())
+		}
+		s.Add(v.Value())
+	}
+	return OK(s)
 }
 
 func ToMap[K comparable, V any](it Iterator[Pair[K, V]]) map[K]V {
@@ -39,6 +63,19 @@ func ToMap[K comparable, V any](it Iterator[Pair[K, V]]) map[K]V {
 		m[kvp.Fst] = kvp.Snd
 	}
 	return m
+}
+
+func TryMap[K comparable, V any](it Iterator[Result[Pair[K, V]]]) Result[map[K]V] {
+	m := map[K]V{}
+	for it.Next() {
+		v := it.Value()
+		if v.Err() != nil {
+			return Err[map[K]V](v.Err())
+		}
+		kvp := v.Value()
+		m[kvp.Fst] = kvp.Snd
+	}
+	return OK(m)
 }
 
 func IterSlice[T any](ts []T) Iterator[T] {
