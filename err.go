@@ -1,40 +1,28 @@
 package fx
 
-type Result[T any] interface {
-	Value() T
-	Err() error
-}
-
-type ok[T any] struct {
-	v T
-}
-
-func (o ok[T]) Value() T {
-	return o.v
-}
-
-func (o ok[T]) Err() error {
-	return nil
-}
-
-type err[T any] struct {
+type Result[T any] struct {
+	v   T
 	err error
 }
 
-func (e err[T]) Value() (v T) {
-	return
+func (r Result[T]) Value() T {
+	return r.v
 }
 
-func (e err[T]) Err() error {
-	return e.err
+func (r Result[T]) Err() error {
+	return r.err
+}
+
+func (r Result[T]) Unpack() (T, error) {
+	return r.v, r.err
 }
 
 func OK[T any](v T) Result[T] {
-	return ok[T]{v: v}
+	return Result[T]{v: v}
 }
 
 func Err[T any](e error) Result[T] {
-	return err[T]{err: e}
+	return Result[T]{err: e}
 }
 
 func Try[T any](v T, e error) Result[T] {

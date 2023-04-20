@@ -117,6 +117,27 @@ func (i *mapIterator[K, V]) Next() bool {
 	return true
 }
 
+type only[T any] struct {
+	v    T
+	done bool
+}
+
+func (o *only[T]) Value() T {
+	return o.v
+}
+
+func (o *only[T]) Next() bool {
+	if !o.done {
+		o.done = true
+		return true
+	}
+	return false
+}
+
+func Only[T any](v T) Iterator[T] {
+	return &only[T]{v: v}
+}
+
 type empty[T any] struct{}
 
 func (empty[T]) Value() (v T) {
