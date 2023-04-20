@@ -36,3 +36,10 @@ func OK[T any](v T) Result[T] {
 func Err[T any](e error) Result[T] {
 	return err[T]{err: e}
 }
+
+func Try[T any](v T, e error) Result[T] {
+	if e != nil {
+		return Err[T](e)
+	}
+	return OK(v)
+}
