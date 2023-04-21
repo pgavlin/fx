@@ -12,6 +12,10 @@ type Pair[T, U any] struct {
 	Snd U
 }
 
+func (p Pair[T, U]) Unpack() (T, U) {
+	return p.Fst, p.Snd
+}
+
 func NewPair[T, U any](fst T, snd U) Pair[T, U] {
 	return Pair[T, U]{Fst: fst, Snd: snd}
 }
@@ -24,16 +28,16 @@ func ToSlice[T any](it Iterator[T]) []T {
 	return s
 }
 
-func TrySlice[T any](it Iterator[Result[T]]) Result[[]T] {
+func TrySlice[T any](it Iterator[Result[T]]) ([]T, error) {
 	var s []T
 	for it.Next() {
-		v := it.Value()
-		if v.Err() != nil {
-			return Err[[]T](v.Err())
+		v, err := it.Value().Unpack()
+		if err != nil {
+			return nil, err
 		}
-		s = append(s, v.Value())
+		s = append(s, v)
 	}
-	return OK(s)
+	return s, nil
 }
 
 func ToSet[T comparable](it Iterator[T]) Set[T] {
@@ -44,38 +48,38 @@ func ToSet[T comparable](it Iterator[T]) Set[T] {
 	return s
 }
 
-func TrySet[T comparable](it Iterator[Result[T]]) Result[Set[T]] {
+func TrySet[T comparable](it Iterator[Result[T]]) (Set[T], error) {
 	s := Set[T]{}
 	for it.Next() {
-		v := it.Value()
-		if v.Err() != nil {
-			return Err[Set[T]](v.Err())
+		v, err := it.Value().Unpack()
+		if err != nil {
+			return Set[T]{}, err
 		}
-		s.Add(v.Value())
+		s.Add(v)
 	}
-	return OK(s)
+	return s, nil
 }
 
 func ToMap[K comparable, V any](it Iterator[Pair[K, V]]) map[K]V {
 	m := map[K]V{}
 	for it.Next() {
-		kvp := it.Value()
-		m[kvp.Fst] = kvp.Snd
+		key, value := it.Value().Unpack()
+		m[key] = value
 	}
 	return m
 }
 
-func TryMap[K comparable, V any](it Iterator[Result[Pair[K, V]]]) Result[map[K]V] {
+func TryMap[K comparable, V any](it Iterator[Result[Pair[K, V]]]) (map[K]V, error) {
 	m := map[K]V{}
 	for it.Next() {
-		v := it.Value()
-		if v.Err() != nil {
-			return Err[map[K]V](v.Err())
+		v, err := it.Value().Unpack()
+		if err != nil {
+			return nil, err
 		}
-		kvp := v.Value()
-		m[kvp.Fst] = kvp.Snd
+		key, value := v.Unpack()
+		m[key] = value
 	}
-	return OK(m)
+	return m, nil
 }
 
 func IterSlice[T any](ts []T) Iterator[T] {

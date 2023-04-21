@@ -5,14 +5,6 @@ type Result[T any] struct {
 	err error
 }
 
-func (r Result[T]) Value() T {
-	return r.v
-}
-
-func (r Result[T]) Err() error {
-	return r.err
-}
-
 func (r Result[T]) Unpack() (T, error) {
 	return r.v, r.err
 }
