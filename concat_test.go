@@ -1,6 +1,7 @@
 package fx
 
 import (
+	"iter"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -18,7 +19,7 @@ func TestConcat(t *testing.T) {
 		{[][]int{{1}, {3}, {5, 7}, {11, 13, 17}, {19, 23, 29, 31, 37}}, []int{1, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37}},
 	}
 	for _, c := range cases {
-		iters := make([]Iterator[int], len(c.input))
+		iters := make([]iter.Seq[int], len(c.input))
 		for i, in := range c.input {
 			iters[i] = IterSlice(in)
 		}

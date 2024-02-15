@@ -1,6 +1,7 @@
 package fx
 
 import (
+	"iter"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,7 +10,7 @@ import (
 func TestReduce(t *testing.T) {
 	cases := []struct {
 		name     string
-		it       Iterator[int]
+		it       iter.Seq[int]
 		init     int
 		fn       func(acc, v int) int
 		expected int

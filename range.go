@@ -1,51 +1,23 @@
 package fx
 
-type range_ struct {
-	i, max int
-	any    bool
-}
+import "iter"
 
-func (r *range_) Value() int {
-	return r.i
-}
-
-func (r *range_) Next() bool {
-	if !r.any {
-		if r.i >= r.max {
-			return false
+func Range(min, max int) iter.Seq[int] {
+	return func(yield func(v int) bool) {
+		for ; min < max; min++ {
+			if !yield(min) {
+				return
+			}
 		}
-		r.any = true
-	} else {
-		if r.i >= r.max-1 {
-			return false
+	}
+}
+
+func MinRange(min int) iter.Seq[int] {
+	return func(yield func(v int) bool) {
+		for ; ; min++ {
+			if !yield(min) {
+				return
+			}
 		}
-		r.i++
 	}
-	return true
-}
-
-func Range(min, max int) Iterator[int] {
-	return &range_{i: min, max: max}
-}
-
-type minRange struct {
-	i   int
-	any bool
-}
-
-func (r *minRange) Value() int {
-	return r.i
-}
-
-func (r *minRange) Next() bool {
-	if !r.any {
-		r.any = true
-	} else {
-		r.i++
-	}
-	return true
-}
-
-func MinRange(min int) Iterator[int] {
-	return &minRange{i: min}
 }

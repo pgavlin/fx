@@ -2,6 +2,7 @@ package fx
 
 import (
 	"fmt"
+	"iter"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,7 +10,7 @@ import (
 
 func TestTake(t *testing.T) {
 	cases := []struct {
-		it       Iterator[int]
+		it       iter.Seq[int]
 		n        int
 		expected []int
 	}{

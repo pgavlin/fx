@@ -1,8 +1,10 @@
 package fx
 
-func Any[T any](it Iterator[T], pred func(v T) bool) bool {
-	for it.Next() {
-		if pred(it.Value()) {
+import "iter"
+
+func Any[T any](it iter.Seq[T], pred func(v T) bool) bool {
+	for v := range it {
+		if pred(v) {
 			return true
 
 		}
@@ -10,9 +12,9 @@ func Any[T any](it Iterator[T], pred func(v T) bool) bool {
 	return false
 }
 
-func All[T any](it Iterator[T], pred func(v T) bool) bool {
-	for it.Next() {
-		if !pred(it.Value()) {
+func All[T any](it iter.Seq[T], pred func(v T) bool) bool {
+	for v := range it {
+		if !pred(v) {
 			return false
 		}
 	}
