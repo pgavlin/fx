@@ -2,6 +2,7 @@ package fx
 
 import (
 	"io"
+	"iter"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,7 +11,7 @@ import (
 func TestTrySlice(t *testing.T) {
 	cases := []struct {
 		name     string
-		it       Iterator[Result[int]]
+		it       iter.Seq[Result[int]]
 		expected Result[[]int]
 	}{
 		{
@@ -54,9 +55,9 @@ func BenchmarkSliceIter(b *testing.B) {
 	b.ResetTimer()
 
 	for n := 0; n < b.N; n++ {
-		iter, sum := IterSlice(s), 0
-		for iter.Next() {
-			sum += iter.Value()
+		sum := 0
+		for v := range IterSlice(s) {
+			sum += v
 		}
 	}
 }

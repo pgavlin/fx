@@ -1,11 +1,6 @@
 package fx
 
-import "reflect"
-
-type Iterator[T any] interface {
-	Value() T
-	Next() bool
-}
+import "iter"
 
 type Pair[T, U any] struct {
 	Fst T
@@ -20,18 +15,38 @@ func NewPair[T, U any](fst T, snd U) Pair[T, U] {
 	return Pair[T, U]{Fst: fst, Snd: snd}
 }
 
-func ToSlice[T any](it Iterator[T]) []T {
+func Pairs[K, V any](it iter.Seq2[K, V]) iter.Seq[Pair[K, V]] {
+	return func(yield func(p Pair[K, V]) bool) {
+		for k, v := range it {
+			if !yield(NewPair(k, v)) {
+				return
+			}
+		}
+	}
+}
+
+func Seq2[K, V any](it iter.Seq[Pair[K, V]]) iter.Seq2[K, V] {
+	return func(yield func(k K, v V) bool) {
+		for p := range it {
+			if !yield(p.Unpack()) {
+				return
+			}
+		}
+	}
+}
+
+func ToSlice[T any](it iter.Seq[T]) []T {
 	var s []T
-	for it.Next() {
-		s = append(s, it.Value())
+	for v := range it {
+		s = append(s, v)
 	}
 	return s
 }
 
-func TrySlice[T any](it Iterator[Result[T]]) ([]T, error) {
+func TrySlice[T any](it iter.Seq[Result[T]]) ([]T, error) {
 	var s []T
-	for it.Next() {
-		v, err := it.Value().Unpack()
+	for v := range it {
+		v, err := v.Unpack()
 		if err != nil {
 			return nil, err
 		}
@@ -40,18 +55,18 @@ func TrySlice[T any](it Iterator[Result[T]]) ([]T, error) {
 	return s, nil
 }
 
-func ToSet[T comparable](it Iterator[T]) Set[T] {
+func ToSet[T comparable](it iter.Seq[T]) Set[T] {
 	s := Set[T]{}
-	for it.Next() {
-		s.Add(it.Value())
+	for v := range it {
+		s.Add(v)
 	}
 	return s
 }
 
-func TrySet[T comparable](it Iterator[Result[T]]) (Set[T], error) {
+func TrySet[T comparable](it iter.Seq[Result[T]]) (Set[T], error) {
 	s := Set[T]{}
-	for it.Next() {
-		v, err := it.Value().Unpack()
+	for v := range it {
+		v, err := v.Unpack()
 		if err != nil {
 			return Set[T]{}, err
 		}
@@ -60,119 +75,82 @@ func TrySet[T comparable](it Iterator[Result[T]]) (Set[T], error) {
 	return s, nil
 }
 
-func ToMap[K comparable, V any](it Iterator[Pair[K, V]]) map[K]V {
+func ToMap[K comparable, V any](it iter.Seq2[K, V]) map[K]V {
 	m := map[K]V{}
-	for it.Next() {
-		key, value := it.Value().Unpack()
-		m[key] = value
+	for k, v := range it {
+		m[k] = v
 	}
 	return m
 }
 
-func TryMap[K comparable, V any](it Iterator[Result[Pair[K, V]]]) (map[K]V, error) {
+func TryMap[K comparable, V any](it iter.Seq2[K, Result[V]]) (map[K]V, error) {
 	m := map[K]V{}
-	for it.Next() {
-		v, err := it.Value().Unpack()
+	for k, v := range it {
+		v, err := v.Unpack()
 		if err != nil {
 			return nil, err
 		}
-		key, value := v.Unpack()
-		m[key] = value
+		m[k] = v
 	}
 	return m, nil
 }
 
-func IterSlice[T any](ts []T) Iterator[T] {
-	return IterList(AsList(ts))
-}
-
-func IterList[T any](ts List[T]) Iterator[T] {
-	return &iterator[T]{ts: ts}
-}
-
-func IterMap[K comparable, V any](m map[K]V) Iterator[Pair[K, V]] {
-	return &mapIterator[K, V]{it: reflect.ValueOf(m).MapRange()}
-}
-
-func IterSet[T comparable](s Set[T]) Iterator[T] {
-	return Map(IterMap(map[T]struct{}(s)), func(p Pair[T, struct{}]) T {
-		return p.Fst
-	})
-}
-
-type mapIterator[K comparable, V any] struct {
-	it *reflect.MapIter
-	v  Pair[K, V]
-}
-
-func (i *mapIterator[K, V]) Value() Pair[K, V] {
-	return i.v
-}
-
-func (i *mapIterator[K, V]) Next() bool {
-	if !i.it.Next() {
-		i.v = Pair[K, V]{}
-		return false
+func IterSlice[T any](ts []T) iter.Seq[T] {
+	return func(yield func(v T) bool) {
+		for _, t := range ts {
+			if !yield(t) {
+				return
+			}
+		}
 	}
-	i.v = Pair[K, V]{
-		Fst: i.it.Key().Interface().(K),
-		Snd: i.it.Value().Interface().(V),
+}
+
+func IterList[T any, L List[T]](ts L) iter.Seq[T] {
+	return func(yield func(v T) bool) {
+		for i := 0; i < ts.Len(); i++ {
+			if !yield(ts.At(i)) {
+				return
+			}
+		}
 	}
-	return true
 }
 
-type only[T any] struct {
-	v    T
-	done bool
-}
-
-func (o *only[T]) Value() T {
-	return o.v
-}
-
-func (o *only[T]) Next() bool {
-	if !o.done {
-		o.done = true
-		return true
+func IterMap[K comparable, V any](m map[K]V) iter.Seq2[K, V] {
+	return func(yield func(k K, v V) bool) {
+		for k, v := range m {
+			if !yield(k, v) {
+				return
+			}
+		}
 	}
-	return false
 }
 
-func Only[T any](v T) Iterator[T] {
-	return &only[T]{v: v}
-}
-
-type empty[T any] struct{}
-
-func (empty[T]) Value() (v T) {
-	return
-}
-
-func (empty[T]) Next() bool {
-	return false
-}
-
-func Empty[T any]() Iterator[T] {
-	return empty[T]{}
-}
-
-type iterator[T any] struct {
-	idx int
-	v   T
-	ts  List[T]
-}
-
-func (i *iterator[T]) Value() (v T) {
-	return i.v
-}
-
-func (i *iterator[T]) Next() bool {
-	if i.idx >= i.ts.Len() {
-		var v T
-		i.v = v
-		return false
+func IterMapPairs[K comparable, V any](m map[K]V) iter.Seq[Pair[K, V]] {
+	return func(yield func(kvp Pair[K, V]) bool) {
+		for k, v := range m {
+			if !yield(NewPair(k, v)) {
+				return
+			}
+		}
 	}
-	i.v = i.ts.At(i.idx)
-	i.idx++
-	return true
+}
+
+func IterSet[T comparable](s Set[T]) iter.Seq[T] {
+	return func(yield func(v T) bool) {
+		for t := range s {
+			if !yield(t) {
+				return
+			}
+		}
+	}
+}
+
+func Only[T any](v T) iter.Seq[T] {
+	return func(yield func(v T) bool) {
+		yield(v)
+	}
+}
+
+func Empty[T any]() iter.Seq[T] {
+	return func(_ func(v T) bool) {}
 }

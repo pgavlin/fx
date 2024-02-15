@@ -1,39 +1,19 @@
 package fx
 
-type concat[T any] struct {
-	iters Iterator[Iterator[T]]
-	it    Iterator[T]
-	v     T
-}
+import "iter"
 
-func (e *concat[T]) Value() T {
-	return e.v
-}
-
-func (e *concat[T]) Next() bool {
-	for {
-		if e.it != nil {
-			if e.it.Next() {
-				e.v = e.it.Value()
-				return true
-			}
-		}
-
-		if !e.iters.Next() {
-			var v T
-			e.v = v
-			return false
-		}
-
-		e.it = e.iters.Value()
-	}
-	return false
-}
-
-func Concat[T any](iters ...Iterator[T]) Iterator[T] {
+func Concat[T any](iters ...iter.Seq[T]) iter.Seq[T] {
 	return ConcatMany(IterSlice(iters))
 }
 
-func ConcatMany[T any](iters Iterator[Iterator[T]]) Iterator[T] {
-	return &concat[T]{iters: iters}
+func ConcatMany[T any, I iter.Seq[iter.Seq[T]]](iters I) iter.Seq[T] {
+	return func(yield func(v T) bool) {
+		for it := range iters {
+			for v := range it {
+				if !yield(v) {
+					return
+				}
+			}
+		}
+	}
 }

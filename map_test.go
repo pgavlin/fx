@@ -1,6 +1,7 @@
 package fx
 
 import (
+	"iter"
 	"strconv"
 	"testing"
 
@@ -10,7 +11,7 @@ import (
 func TestFMap(t *testing.T) {
 	cases := []struct {
 		name     string
-		it       Iterator[int]
+		it       iter.Seq[int]
 		pred     func(v int) (string, bool)
 		expected []string
 	}{
@@ -58,7 +59,7 @@ func TestFMap(t *testing.T) {
 func TestMap(t *testing.T) {
 	cases := []struct {
 		name     string
-		it       Iterator[int]
+		it       iter.Seq[int]
 		mapf     func(v int) string
 		expected []string
 	}{
