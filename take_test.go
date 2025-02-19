@@ -3,6 +3,7 @@ package fx
 import (
 	"fmt"
 	"iter"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -27,7 +28,7 @@ func TestTake(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(fmt.Sprintf("%v", c.expected), func(t *testing.T) {
-			actual := ToSlice(Take(c.it, c.n))
+			actual := slices.Collect(Take(c.it, c.n))
 			assert.Equal(t, c.expected, actual)
 		})
 	}

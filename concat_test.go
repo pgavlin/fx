@@ -2,6 +2,7 @@ package fx
 
 import (
 	"iter"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -21,9 +22,9 @@ func TestConcat(t *testing.T) {
 	for _, c := range cases {
 		iters := make([]iter.Seq[int], len(c.input))
 		for i, in := range c.input {
-			iters[i] = IterSlice(in)
+			iters[i] = slices.Values(in)
 		}
-		actual := ToSlice(Concat(iters...))
+		actual := slices.Collect(Concat(iters...))
 		assert.Equal(t, c.expected, actual)
 	}
 }

@@ -1,9 +1,12 @@
 package fx
 
-import "iter"
+import (
+	"iter"
+	"slices"
+)
 
 func Concat[T any](iters ...iter.Seq[T]) iter.Seq[T] {
-	return ConcatMany(IterSlice(iters))
+	return ConcatMany(slices.Values(iters))
 }
 
 func ConcatMany[T any, I iter.Seq[iter.Seq[T]]](iters I) iter.Seq[T] {

@@ -2,6 +2,7 @@ package fx
 
 import (
 	"iter"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -47,7 +48,7 @@ func TestFilter(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			actual := ToSlice(Filter(c.it, c.pred))
+			actual := slices.Collect(Filter(c.it, c.pred))
 			assert.Equal(t, c.expected, actual)
 		})
 	}

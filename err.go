@@ -23,3 +23,9 @@ func Try[T any](v T, e error) Result[T] {
 	}
 	return OK(v)
 }
+
+func TryFunc[T, U any](fn func(t T) (U, error)) func(t T) Result[U] {
+	return func(t T) Result[U] {
+		return Try(fn(t))
+	}
+}
