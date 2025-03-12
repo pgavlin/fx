@@ -21,13 +21,5 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     - name: Test
-      run: go test ./... -coverprofile=coverage.out
-    - name: Upload coverage data
-      if: ${{ matrix.os != 'windows-latest' }}
-      uses: codecov/codecov-action@v4
-      with:
-        files: ./coverage.out
-        fail_ci_if_error: true
-        verbose: true
-        env_vars: OS
-        token: ${{ secrets.CODECOV_TOKEN }}
+      run: go test -cover ./...
+
