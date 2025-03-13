@@ -54,7 +54,23 @@ func OK[T any](it iter.Seq[T]) iter.Seq2[T, error] {
 	}
 }
 
-// NoError returns true if err is nil.
-func NoError[T any](_ T, err error) bool {
-	return err == nil
+// NoError returns (true, nil) if err is nil.
+func NoError[T any](_ T, err error) (bool, error) {
+	return err == nil, err
+}
+
+// NoErrors transforms a sequence of (T, error) pairs into a sequence of T values, including only those values
+// from pairs where the error is nil.
+//
+// Equivalent to Must(Filter(it, NoError[T])).
+func NoErrors[T any](it iter.Seq2[T, error]) iter.Seq[T] {
+	return func(yield func(t T) bool) {
+		for v, err := range it {
+			if err == nil {
+				if !yield(v) {
+					return
+				}
+			}
+		}
+	}
 }
