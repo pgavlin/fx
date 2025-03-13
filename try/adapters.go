@@ -53,3 +53,8 @@ func OK[T any](it iter.Seq[T]) iter.Seq2[T, error] {
 		}
 	}
 }
+
+// NoError returns true if err is nil.
+func NoError[T any](_ T, err error) bool {
+	return err == nil
+}
