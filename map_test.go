@@ -1,6 +1,8 @@
 package fx
 
 import (
+	"iter"
+	"slices"
 	"strconv"
 	"testing"
 
@@ -10,7 +12,7 @@ import (
 func TestFMap(t *testing.T) {
 	cases := []struct {
 		name     string
-		it       Iterator[int]
+		it       iter.Seq[int]
 		pred     func(v int) (string, bool)
 		expected []string
 	}{
@@ -49,7 +51,7 @@ func TestFMap(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			actual := ToSlice(FMap(c.it, c.pred))
+			actual := slices.Collect(FMap(c.it, c.pred))
 			assert.Equal(t, c.expected, actual)
 		})
 	}
@@ -58,7 +60,7 @@ func TestFMap(t *testing.T) {
 func TestMap(t *testing.T) {
 	cases := []struct {
 		name     string
-		it       Iterator[int]
+		it       iter.Seq[int]
 		mapf     func(v int) string
 		expected []string
 	}{
@@ -83,7 +85,7 @@ func TestMap(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			actual := ToSlice(Map(c.it, c.mapf))
+			actual := slices.Collect(Map(c.it, c.mapf))
 			assert.Equal(t, c.expected, actual)
 		})
 	}
