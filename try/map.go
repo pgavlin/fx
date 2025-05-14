@@ -26,3 +26,29 @@ func Map[T, U any](it iter.Seq2[T, error], fn func(v T, err error) (U, error)) i
 		}
 	}
 }
+
+// MapUntil invokes fn with a view of the input sequence as if it had no errors. This view terminates on the
+// first error (if any) in the input. The output is an iter.Seq2[U, error]; if an error is encountered in the
+// input, the output will terminate with that error.
+func MapUntil[T, U any](it iter.Seq2[T, error], fn func(it iter.Seq[T]) iter.Seq[U]) iter.Seq2[U, error] {
+	var err error
+	ts := func(yield func(T) bool) {
+		var t T
+		for t, err = range it {
+			if err != nil || !yield(t) {
+				break
+			}
+		}
+	}
+	return func(yield func(U, error) bool) {
+		for u := range fn(ts) {
+			if !yield(u, nil) {
+				return
+			}
+		}
+		if err != nil {
+			var u U
+			yield(u, err)
+		}
+	}
+}
