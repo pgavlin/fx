@@ -35,3 +35,19 @@ func TryFunc[T, U any](fn func(t T) (U, error)) func(t T) Result[U] {
 		return Try(fn(t))
 	}
 }
+
+// AndThen invokes fn and returns the result if r is not an error. Otherwise, AndThen returns a new Result that wraps r's error.
+func AndThen[T, U any](r Result[T], fn func(t T) Result[U]) Result[U] {
+	if r.err != nil {
+		return Err[U](r.err)
+	}
+	return fn(r.v)
+}
+
+// OrElse invokes fn and returns the result if r is an error. Otherwise, OrElse returns r.
+func OrElse[T any](r Result[T], fn func() Result[T]) Result[T] {
+	if r.err != nil {
+		return fn()
+	}
+	return r
+}
