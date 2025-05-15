@@ -1,9 +1,11 @@
 package fx
 
 import (
+	"fmt"
 	"iter"
 	"maps"
 	"slices"
+	"strings"
 )
 
 // A Set represents a set of comparable values.
@@ -63,4 +65,26 @@ func (s Set[T]) Values() iter.Seq[T] {
 // ToSlice returns a slice that contains the values in the set. The ordering of elements is undefined.
 func (s Set[T]) ToSlice() []T {
 	return slices.Collect(s.Values())
+}
+
+// String returns a pretty-printed representation of the values in the set.
+func (s Set[T]) String() string {
+	if s.Len() == 0 {
+		return "()"
+	}
+
+	var b strings.Builder
+	b.WriteRune('(')
+
+	i := 0
+	for v := range s {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+		fmt.Fprintf(&b, "%v", v)
+		i++
+	}
+
+	b.WriteRune(')')
+	return b.String()
 }
