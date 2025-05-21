@@ -16,6 +16,15 @@ func (s Set[T]) Len() int {
 	return len(s)
 }
 
+// NewSet returns a new set that contains the given elements.
+func NewSet[T comparable](values ...T) Set[T] {
+	s := make(Set[T], len(values))
+	for _, v := range values {
+		s.Add(v)
+	}
+	return s
+}
+
 // Add adds a value to the set.
 func (s Set[T]) Add(v T) {
 	s[v] = struct{}{}
