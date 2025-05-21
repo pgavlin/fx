@@ -3,7 +3,7 @@ package fx
 import "iter"
 
 // OfType returns a sequence composed of all elements in the input sequence that are of type U.
-func OfType[T, U any](it iter.Seq[T]) iter.Seq[U] {
+func OfType[U, T any](it iter.Seq[T]) iter.Seq[U] {
 	return FMap(it, func(v T) (U, bool) {
 		u, ok := any(v).(U)
 		return u, ok

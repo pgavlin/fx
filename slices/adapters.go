@@ -38,8 +38,8 @@ func Map[T ~[]E, E, U any](s T, fn func(v E) U) iter.Seq[U] {
 
 // OfType returns a sequence composed of all elements in the input slice
 // that are of type U.
-func OfType[T ~[]E, E, U any](s T) iter.Seq[U] {
-	return fx.OfType[E, U](slices.Values(s))
+func OfType[U any, T ~[]E, E any](s T) iter.Seq[U] {
+	return fx.OfType[U](slices.Values(s))
 }
 
 // Reduce calls fn on each element of the input slice, passing in the

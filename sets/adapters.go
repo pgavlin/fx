@@ -38,8 +38,8 @@ func Map[T ~map[E]struct{}, E comparable, U any](s T, fn func(v E) U) iter.Seq[U
 
 // OfType returns a sequence composed of all elements in the input set
 // that are of type U.
-func OfType[T ~map[E]struct{}, E comparable, U any](s T) iter.Seq[U] {
-	return fx.OfType[E, U](maps.Keys(s))
+func OfType[U any, T ~map[E]struct{}, E comparable](s T) iter.Seq[U] {
+	return fx.OfType[U](maps.Keys(s))
 }
 
 // Reduce calls fn on each element of the input set, passing in the

@@ -90,3 +90,10 @@ func TestMap(t *testing.T) {
 		})
 	}
 }
+
+func TestOfType(t *testing.T) {
+	seq1 := slices.Values([]any{1, 2, "three"})
+	seq2 := slices.Collect(OfType[int](seq1))
+	assert.Equal(t, []int{1, 2}, seq2)
+
+}
