@@ -1,76 +1,11 @@
 package try
 
-import (
-	"iter"
-
-	"github.com/pgavlin/fx/v2"
+var (
+	_ = All[int]
+	_ = Any[int]
+	_ = FMap[int, int]
+	_ = Filter[int]
+	_ = Map[int, int]
+	_ = Reduce[int, int]
+	_ = Take[int]
 )
-
-// PackAll transforms a sequence of (T, error) pairs into a sequence of Result[T] values.
-func PackAll[T any](it iter.Seq2[T, error]) iter.Seq[fx.Result[T]] {
-	return func(yield func(r fx.Result[T]) bool) {
-		for v, err := range it {
-			if !yield(fx.Try(v, err)) {
-				break
-			}
-		}
-	}
-}
-
-// UnpackAll transforms a sequence of Result[T] values into a sequence of (T, error) pairs.
-func UnpackAll[T any](it iter.Seq[fx.Result[T]]) iter.Seq2[T, error] {
-	return func(yield func(t T, err error) bool) {
-		for v := range it {
-			if !yield(v.Unpack()) {
-				break
-			}
-		}
-	}
-}
-
-// Must transforms a sequence of (T, error) pairs into a sequence of T values. If any element of the input sequence
-// contains a non-nil error, the returned iterator will panic when that error is observed.
-func Must[T any](it iter.Seq2[T, error]) iter.Seq[T] {
-	return func(yield func(t T) bool) {
-		for v, err := range it {
-			if err != nil {
-				panic(err)
-			}
-			if !yield(v) {
-				break
-			}
-		}
-	}
-}
-
-// OK transforms a sequence of values into a sequence of (T, nil) pairs.
-func OK[T any](it iter.Seq[T]) iter.Seq2[T, error] {
-	return func(yield func(t T, err error) bool) {
-		for v := range it {
-			if !yield(v, nil) {
-				break
-			}
-		}
-	}
-}
-
-// NoError returns (true, nil) if err is nil.
-func NoError[T any](_ T, err error) (bool, error) {
-	return err == nil, err
-}
-
-// NoErrors transforms a sequence of (T, error) pairs into a sequence of T values, including only those values
-// from pairs where the error is nil.
-//
-// Equivalent to Must(Filter(it, NoError[T])).
-func NoErrors[T any](it iter.Seq2[T, error]) iter.Seq[T] {
-	return func(yield func(t T) bool) {
-		for v, err := range it {
-			if err == nil {
-				if !yield(v) {
-					return
-				}
-			}
-		}
-	}
-}

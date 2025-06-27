@@ -24,6 +24,17 @@ func Any2[T, U any](it iter.Seq2[T, U], pred func(t T, u U) bool) bool {
 	return false
 }
 
+// Contains returns true if the input sequence contains t.
+func Contains[T comparable](it iter.Seq[T], t T) bool {
+	for v := range it {
+		if v == t {
+			return true
+
+		}
+	}
+	return false
+}
+
 // All returns true if pred returns true for every element of the input sequence.
 func All[T any](it iter.Seq[T], pred func(v T) bool) bool {
 	for v := range it {

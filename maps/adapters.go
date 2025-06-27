@@ -2,83 +2,78 @@ package maps
 
 import (
 	"iter"
+	"maps"
 
 	"github.com/pgavlin/fx/v2"
 )
 
-// Pairs returns a sequence of (key, value) entries in m represented as fx.Pairs.
-//
-// Equivalent to fx.PackAll(maps.All(m)).
-func Pairs[M ~map[K]V, K comparable, V any](m M) iter.Seq[fx.Pair[K, V]] {
-	return func(yield func(kvp fx.Pair[K, V]) bool) {
-		for k, v := range m {
-			if !yield(fx.Pack(k, v)) {
-				return
-			}
-		}
-	}
+// All returns true if pred returns true for every element of the input slice.
+func All[M ~map[T]U, T comparable, U any](m M, pred func(t T, u U) bool) bool {
+	return fx.All2(maps.All(m), pred)
 }
 
-func pairPred[K comparable, V any](pred func(k K, v V) bool) func(fx.Pair[K, V]) bool {
-	return func(kvp fx.Pair[K, V]) bool { return pred(kvp.Fst, kvp.Snd) }
+// Any returns true if pred returns true for any element of the input slice.
+func Any[M ~map[T]U, T comparable, U any](m M, pred func(t T, u U) bool) bool {
+	return fx.Any2(maps.All(m), pred)
 }
 
-// All returns true if pred returns true for every entry of the input map.
-func All[M ~map[K]V, K comparable, V any](m M, pred func(k K, v V) bool) bool {
-	return fx.All(Pairs(m), pairPred(pred))
+// FMap returns a sequence of values computed by invoking fn on each element of the input slice and returning only mapped
+// values for with fn returns true.
+func FMap[M ~map[T]U, T comparable, U any, V any, W any](m M, fn func(t T, u U) (V, W, bool)) iter.Seq2[V, W] {
+	return fx.FMap2(maps.All(m), fn)
 }
 
-// Any returns true if pred returns true for any entry of the input map.
-func Any[M ~map[K]V, K comparable, V any](m M, pred func(k K, v V) bool) bool {
-	return fx.Any(Pairs(m), pairPred(pred))
+// FMapPack returns a sequence of values computed by invoking fn on each element of the input slice and returning only mapped
+// values for with fn returns true.
+func FMapPack[M ~map[T]U, T comparable, U any, V any](m M, fn func(t T, u U) (V, bool)) iter.Seq[V] {
+	return fx.FMap2Pack(maps.All(m), fn)
 }
 
-// FMap returns a sequence of values computed by invoking fn on each entry
-// of the input map and returning only mapped values for with fn returns
+// Filter returns a sequence of values computed by invoking fn on each element
+// of the input slice and returning only those elements for with fn returns
 // true.
-func FMap[M ~map[K]V, K, L comparable, V, W any](m M, fn func(k K, v V) (L, W, bool)) iter.Seq2[L, W] {
-	return fx.UnpackAll(fx.FMap(Pairs(m), func(kvp fx.Pair[K, V]) (fx.Pair[L, W], bool) {
-		l, u, ok := fn(kvp.Fst, kvp.Snd)
-		return fx.Pack(l, u), ok
-	}))
+func Filter[M ~map[T]U, T comparable, U any](m M, fn func(t T, u U) bool) iter.Seq2[T, U] {
+	return fx.Filter2(maps.All(m), fn)
 }
 
-// Filter returns a sequence of values computed by invoking fn on each entry
-// of the input map and returning only those entries for with fn returns
-// true.
-func Filter[M ~map[K]V, K comparable, V any](m M, fn func(k K, v V) bool) iter.Seq2[K, V] {
-	return fx.UnpackAll(fx.Filter(Pairs(m), pairPred(fn)))
+// First returns the first element of it, if any elements exist.
+func First[M ~map[T]U, T comparable, U any](m M) (T, U, bool) {
+	return fx.First2(maps.All(m))
 }
 
-// Map invokes fn on each value in the input map and returns the results.
-func Map[M ~map[K]V, K, L comparable, V, W any](m M, fn func(k K, v V) (L, W)) iter.Seq2[L, W] {
-	return fx.UnpackAll(fx.Map(Pairs(m), func(kvp fx.Pair[K, V]) fx.Pair[L, W] {
-		return fx.Pack(fn(kvp.Fst, kvp.Snd))
-	}))
+// Last returns the last element of it, if any elements exist.
+func Last[M ~map[T]U, T comparable, U any](m M) (T, U, bool) {
+	return fx.Last2(maps.All(m))
 }
 
-// Reduce calls fn on each entry of the input map, passing in the
+// Map invokes fn on each value in the input slice and returns the results.
+func Map[M ~map[T]U, T comparable, U any, V any, W any](m M, fn func(t T, u U) (V, W)) iter.Seq2[V, W] {
+	return fx.Map2(maps.All(m), fn)
+}
+
+// MapPack invokes fn on each value in the input slice and returns the results.
+func MapPack[M ~map[T]U, T comparable, U any, V any](m M, fn func(t T, u U) V) iter.Seq[V] {
+	return fx.Map2Pack(maps.All(m), fn)
+}
+
+// OfType returns a sequence composed of all elements in the input sequence where the second value is of type U.
+func OfType[U any, M ~map[K]T, K comparable, T any](m M) iter.Seq2[K, U] {
+	return fx.OfType2[U](maps.All(m))
+}
+
+// Reduce calls fn on each element of the input slice, passing in the
 // current value of the accumulator with each invocation and updating the
 // accumulator to the result of fn after each invocation.
-func Reduce[M ~map[K]V, K comparable, V, U any](m M, init U, fn func(acc U, k K, v V) U) U {
-	return fx.Reduce(Pairs(m), init, func(acc U, kvp fx.Pair[K, V]) U {
-		return fn(acc, kvp.Fst, kvp.Snd)
-	})
+func Reduce[M ~map[T]U, T comparable, U any, V any](m M, init V, fn func(acc V, t T, u U) V) V {
+	return fx.Reduce2(maps.All(m), init, fn)
 }
 
-// TryCollect attempts to collect the key-value pairs in the input sequence into a map. If any pair in the input contains a
-// non-nil error, TryCollect halts and returns the collected map up to that point (excluding the value returned with the error)
-// and the error.
-func TryCollect[K comparable, V any](it iter.Seq2[fx.Pair[K, V], error]) (map[K]V, error) {
-	var m map[K]V
-	for kvp, err := range it {
-		if err != nil {
-			return m, err
-		}
-		if m == nil {
-			m = make(map[K]V)
-		}
-		m[kvp.Fst] = kvp.Snd
-	}
-	return m, nil
+// Skip returns an iterator that skips n values from its source.
+func Skip[M ~map[T]U, T comparable, U any](m M, n int) iter.Seq2[T, U] {
+	return fx.Skip2(maps.All(m), n)
+}
+
+// Take returns an iterator that takes at most n values from the input slice.
+func Take[M ~map[T]U, T comparable, U any](m M, n int) iter.Seq2[T, U] {
+	return fx.Take2(maps.All(m), n)
 }
