@@ -7,7 +7,6 @@ func Any[T any](it iter.Seq[T], pred func(v T) bool) bool {
 	for v := range it {
 		if pred(v) {
 			return true
-
 		}
 	}
 	return false
@@ -18,7 +17,6 @@ func Any2[T, U any](it iter.Seq2[T, U], pred func(t T, u U) bool) bool {
 	for t, u := range it {
 		if pred(t, u) {
 			return true
-
 		}
 	}
 	return false
@@ -29,7 +27,6 @@ func Contains[T comparable](it iter.Seq[T], t T) bool {
 	for v := range it {
 		if v == t {
 			return true
-
 		}
 	}
 	return false

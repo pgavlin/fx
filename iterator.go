@@ -25,3 +25,25 @@ func Empty[T any]() iter.Seq[T] {
 func Empty2[T, U any]() iter.Seq2[T, U] {
 	return func(_ func(T, U) bool) {}
 }
+
+// Enumerate returns a sequence of (index, value) pairs from the given length and element accessor.
+func Enumerate[T any](len func() int, item func(int) T) iter.Seq2[int, T] {
+	return func(yield func(int, T) bool) {
+		for i := range len() {
+			if !yield(i, item(i)) {
+				return
+			}
+		}
+	}
+}
+
+// Values returns a sequence of values from the given length and element accessor.
+func Values[T any](len func() int, item func(int) T) iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for i := range len() {
+			if !yield(item(i)) {
+				return
+			}
+		}
+	}
+}

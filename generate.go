@@ -101,12 +101,19 @@ func prependComma(s string) string {
 	return ", " + s
 }
 
+func prependSpace(s string) string {
+	if s == "" {
+		return ""
+	}
+	return " " + s
+}
+
 func parenthesize(s []string) string {
 	switch len(s) {
 	case 0:
 		return ""
 	case 1:
-		return " " + s[0]
+		return s[0]
 	default:
 		return "(" + strings.Join(s, ", ") + ")"
 	}
@@ -168,7 +175,7 @@ func (c *collector) finishFunctionData(fn *types.Func, name string, newTypeParam
 		Callee:     fn.Name(),
 		TypeParams: strings.Join(newTypeParams, ", "),
 		Params:     prependComma(strings.Join(newParamStrings, ", ")),
-		Results:    parenthesize(newResults),
+		Results:    prependSpace(parenthesize(newResults)),
 		Return:     returns,
 		Args:       prependComma(strings.Join(newArgs, ", ")),
 	}
