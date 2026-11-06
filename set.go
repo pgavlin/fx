@@ -43,11 +43,7 @@ func (s Set[T]) Has(v T) bool {
 
 // Copy returns a shallow copy of S.
 func (s Set[T]) Copy() Set[T] {
-	other := make(Set[T], s.Len())
-	for k := range s {
-		other.Add(k)
-	}
-	return other
+	return maps.Clone(s)
 }
 
 // Intersect sets the contents of s to the intersection of s and other.
